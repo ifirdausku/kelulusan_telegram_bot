@@ -1,6 +1,6 @@
 <?php
-$token = "123456:DSSDFSDFSFDSFFG-DDDDDD"; //Ganti dengan Token yang diperoleh dari BotFather
-$usernamebot=""; //nama bot yang diperoleh dari BotFather
+$token = ""; //Ganti dengan Token yang diperoleh dari BotFather
+$usernamebot="@mantengaran_bot"; //nama bot yang diperoleh dari BotFather
 define('BOT_TOKEN', $token); 
 
 define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
@@ -245,6 +245,10 @@ function processMessage($message)
 		break;
 		case '/kelulusan':
         case '/kelulusan@mantengaran_bot': 
+            $tanggal = '2020-05-02 17:00:00';
+            $currentTime = time();
+            if ($currentTime > strtotime($tanggal)) 
+            {
 				if ((isset($pecah2[1])) and (isset($pecah2[2])))
 				{
 					$nomor_um = $pecah2[1]; //mendapatkan nohp dari kata kedua
@@ -259,6 +263,7 @@ function processMessage($message)
 					        $d = mysqli_fetch_array($ta);
 					        $nama_siswa = $d['nama'];
 							$text = 'Dear '.$nama.', selamat Ananda *'.$nama_siswa.'* dinyatakan *LULUS*';
+							mysqli_query($mysqli,"UPDATE `kelulusan` SET `dilihat` = '1' WHERE `nomor_um`='$nomor_um'");
 					} else
 					{ 
 					    $text = "Maaf, $nama , data kelulusan yang dimaksud tidak kami temukan, pastikan nomor peserta dan password benar";
@@ -269,6 +274,42 @@ function processMessage($message)
 				  $text .= "\n";
 				  $text .= "Format: /kelulusan `001.19.20.363.209` `123456`";
 				}
+            }
+    		else
+	    	{
+	    	    $nama_siswa = '';
+	    	    $text = '';
+				if ((isset($pecah2[1])) and (isset($pecah2[2])))
+				{
+					$nomor_um = $pecah2[1]; //mendapatkan nohp dari kata kedua
+					$password = $pecah2[2]; //contoh untuk mendapatkan password awal secara random
+				    $nomor_um = str_replace("'","",$nomor_um);
+				    $password = str_replace("'","",$password);
+    				include "koneksi.php";
+    	    	    if(mysqli_num_rows(mysqli_query($mysqli, "select * from `kelulusan` where `nomor_um` ='$nomor_um' and `password` ='$password'")))
+					{
+					        $ta = mysqli_query($mysqli, "select * from `kelulusan` where `nomor_um` ='$nomor_um' and `password` ='$password'");
+					        $nama_siswa = 'nama tidak dikenal';
+					        $d = mysqli_fetch_array($ta);
+					        $nama_siswa = $d['nama'];
+					}
+					else
+					{ 
+					    $text = "Maaf, $nama , data kelulusan yang dimaksud tidak kami temukan, pastikan nomor peserta dan password benar\n\n";
+					}
+				}
+				else
+	    	{
+	    	     $text = '*ERROR:* _No peserta um atau password tidak boleh kosong!_';
+				  $text .= "\n";
+				  $text .= "Format:\n /kelulusan `001.19.20.363.209` `123456`\n\n";
+	    	}
+					if(!empty($nama_siswa))
+					{
+					    $text = "Assalamu alaikum, wr.wb. Ananda ".$nama_siswa.",\n\n";
+					}
+    		    $text .= '*INFO:* _Saat ini belum waktunya kelulusan_. *Kelulusan* akan diumumkan _'.$tanggal.'_';
+		    }
 		break;          
         case '/password':
         case '/password@mantengaran_bot':
